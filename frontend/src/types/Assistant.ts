@@ -38,11 +38,23 @@ export interface AssistantResponse {
     confidence: number;
     intent: string;
     entities?: any[];
+    // Nuevas propiedades para el viaje del barista
+    needsDerivation?: boolean;
+    recommendedAssistant?: string;
+    journeyStage?: string;
+    derivationReason?: string;
+    assistant?: string;
+    responseTime?: number;
+    model?: string;
+    isLocal?: boolean;
+    provider?: string;
+    isFallback?: boolean;
+    timestamp?: string;
   };
 }
 
 export interface AssistantAction {
-  type: 'redirect' | 'contact' | 'schedule' | 'demo' | 'info';
+  type: 'redirect' | 'contact' | 'schedule' | 'demo' | 'info' | 'derivation';
   label: string;
   data: any;
 }
@@ -54,10 +66,22 @@ export interface AssistantContextType {
   isLoading: boolean;
   error: string | null;
   assistants: Assistant[];
-  setActiveAssistant: (assistant: Assistant | null) => void;
-  sendMessage: (message: string) => Promise<AssistantResponse | undefined>;
   startNewSession: (assistantId: string) => void;
+  sendMessage: (message: string) => Promise<AssistantResponse | undefined>;
   endSession: () => void;
   endCall: () => Promise<void>;
   clearError: () => void;
+  setActiveAssistant: (assistant: Assistant | null) => void;
+  // Nuevas propiedades para el viaje del barista
+  journeyStage?: string | null;
+  derivationData?: {
+    currentAssistant: string;
+    recommendedAssistant: string;
+    journeyStage: string;
+    reason: string;
+    confidence: number;
+  } | null;
+  showJourneyManager?: boolean;
+  acceptDerivation?: (targetAssistantId: string) => void;
+  declineDerivation?: () => void;
 }

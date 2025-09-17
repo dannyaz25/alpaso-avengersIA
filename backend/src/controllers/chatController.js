@@ -56,8 +56,8 @@ export const sendMessage = async (req, res) => {
       timestamp: new Date()
     });
 
-    // Generar respuesta del asistente
-    const aiResponse = await assistantAI.generateResponse(
+    // Generar respuesta del asistente con contexto del viaje del barista
+    const aiResponse = await assistantAI.generateJourneyAwareResponse(
       assistantId,
       message,
       context
@@ -70,6 +70,14 @@ export const sendMessage = async (req, res) => {
       timestamp: new Date(),
       metadata: aiResponse.metadata
     });
+
+    // Si hay una derivación recomendada, incluir información adicional
+    if (aiResponse.metadata?.needsDerivation) {
+      logger.info(`🔄 Derivación recomendada de ${assistantId} a ${aiResponse.metadata.recommendedAssistant}`, {
+        journeyStage: aiResponse.metadata.journeyStage,
+        reason: aiResponse.metadata.derivationReason
+      });
+    }
 
     // Emitir respuesta via Socket.IO
     emitAssistantResponse(assistantId, conversation.sessionId, aiResponse);

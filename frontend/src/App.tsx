@@ -7,7 +7,8 @@ import StarkAssistant from './components/assistants/StarkAssistant';
 import CapAssistant from './components/assistants/CapAssistant';
 import SpideyAssistant from './components/assistants/SpideyAssistant';
 import Navigation from './components/Navigation';
-import { AssistantProvider } from './contexts/AssistantContext';
+import JourneyManager from './components/JourneyManager';
+import { AssistantProvider, useAssistant } from './contexts/AssistantContext';
 import './App.css';
 
 const GlobalStyle = createGlobalStyle`
@@ -59,6 +60,12 @@ const MainContent = styled(motion.main)`
   padding: 0;
 `;
 
+const Wrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+`;
+
 function App() {
   return (
     <ThemeProvider theme={theme}>
@@ -72,12 +79,15 @@ function App() {
               animate={{ opacity: 1 }}
               transition={{ duration: 0.5 }}
             >
-              <Routes>
-                <Route path="/" element={<HomePage />} />
-                <Route path="/stark" element={<StarkAssistant />} />
-                <Route path="/cap" element={<CapAssistant />} />
-                <Route path="/spidey" element={<SpideyAssistant />} />
-              </Routes>
+              <Wrapper>
+                <Routes>
+                  <Route path="/" element={<HomePage />} />
+                  <Route path="/stark" element={<StarkAssistant />} />
+                  <Route path="/cap" element={<CapAssistant />} />
+                  <Route path="/spidey" element={<SpideyAssistant />} />
+                </Routes>
+                <JourneyManager />
+              </Wrapper>
             </MainContent>
           </AppContainer>
         </Router>

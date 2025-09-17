@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import styled from 'styled-components';
 import { motion, AnimatePresence } from 'framer-motion';
-//import { Send, Zap, TrendingUp, Target, BarChart3, Lightbulb, Mic, MicOff, Volume2, VolumeX, Phone, PhoneCall } from 'lucide-react';
-import { Send,Zap, Shield, CheckCircle, AlertTriangle, HelpCircle, Settings, Mic, MicOff, Volume2, VolumeX, Phone, PhoneCall } from 'lucide-react';
+import { CheckCircle, Send, Zap, TrendingUp, Target, BarChart3, Lightbulb, Mic, MicOff, Volume2, VolumeX, Phone, PhoneCall } from 'lucide-react';
 import { useAssistant } from '../../contexts/AssistantContext';
 
 const ChatContainer = styled.div`
@@ -474,13 +473,44 @@ const StarkAssistant: React.FC = () => {
     }
   };
 
-const quickActions = [
-    "Metricas",
-    "Landing",
-    "Clips Virales",
-    "Contactar soporte humano",
-    "Estado del sistema"
+  const quickActions = [
+    "📊 Métricas de Marketing",
+    "🎯 Landing Page",
+    "🎬 Clips Virales",
+    "📈 Lead Generation",
+    "🚀 Campañas Ads"
   ];
+
+  const customerJourneyStages = {
+    descubrimiento: {
+      title: "🔍 Descubrimiento",
+      actions: ["Landing optimizada", "Ads con lead forms", "Clips virales TikTok"],
+      kpis: ["CTR", "CPM", "Impresiones"]
+    },
+    interes: {
+      title: "✨ Interés",
+      actions: ["Mini-historias Captain Espresso", "Contenido Cappu Ninja", "Engagement social"],
+      kpis: ["Engagement Rate", "Video Views", "Shares"]
+    },
+    consideracion: {
+      title: "🤔 Consideración",
+      actions: ["Testimonios de baristas", "Demo de monetización", "Casos de éxito"],
+      kpis: ["Time on Site", "Demo Requests", "Content Downloads"]
+    },
+    retencion: {
+      title: "🔄 Retención",
+      actions: ["Eventos especiales", "Comunidad activa", "Incentivos de fidelidad"],
+      kpis: ["Monthly Active Users", "Retention Rate", "NPS"]
+    }
+  };
+
+  const handleJourneyStage = (stage: string) => {
+    const stageData = customerJourneyStages[stage as keyof typeof customerJourneyStages];
+    if (stageData) {
+      const message = `Analicemos la etapa de ${stageData.title}. Como responsable de marketing, puedo ayudarte con: ${stageData.actions.join(', ')}. KPIs clave: ${stageData.kpis.join(', ')}`;
+      handleSendMessage(message);
+    }
+  };
 
   return (
     <ChatContainer>

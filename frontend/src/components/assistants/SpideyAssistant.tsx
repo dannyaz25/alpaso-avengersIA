@@ -451,13 +451,39 @@ function SpideyAssistant() {
     }
   };
 
-const quickActions = [
-    "Reportar un problema",
-    "Ayuda con mi cuenta",
-    "Guía paso a paso",
-    "Contactar soporte humano",
-    "Estado del sistema"
+  const quickActions = [
+    "💰 Demo Monetización",
+    "📊 Casos de Éxito",
+    "🎯 Testimonios Baristas",
+    "🚀 Optimizar Ventas",
+    "📈 Conversión"
   ];
+
+  const salesJourneyStages = {
+    consideracion: {
+      title: "🤔 Consideración",
+      actions: ["Testimonios de baristas", "Demo de monetización", "Casos de éxito"],
+      kpis: ["Time on Site", "Demo Requests", "Content Downloads", "Conversion Rate"]
+    },
+    participacion: {
+      title: "🎯 Participación/Ventas",
+      actions: ["Herramientas clips integradas", "Notificaciones leads", "Optimización conversión"],
+      kpis: ["Sales Conversion", "Revenue per User", "Lead Quality", "Purchase Rate"]
+    },
+    optimizacion: {
+      title: "🚀 Optimización",
+      actions: ["A/B testing", "Funnel analysis", "User behavior tracking"],
+      kpis: ["Conversion Rate", "Cart Abandonment", "Customer LTV", "ROI"]
+    }
+  };
+
+  const handleSalesStage = (stage: string) => {
+    const stageData = salesJourneyStages[stage as keyof typeof salesJourneyStages];
+    if (stageData) {
+      const message = `¡Hola! Te ayudo con ${stageData.title}. Como especialista en ventas y desarrollo, puedo optimizar: ${stageData.actions.join(', ')}. KPIs de ventas: ${stageData.kpis.join(', ')}`;
+      handleSendMessage(message);
+    }
+  };
 
   return (
     <ChatContainer>

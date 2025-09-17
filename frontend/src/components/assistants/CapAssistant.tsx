@@ -457,19 +457,38 @@ function CapAssistant() {
   };
 
   const quickActions = [
-    "Reportar un problema",
-    "Ayuda con mi cuenta",
-    "Guía paso a paso",
-    "Contactar soporte humano",
-    "Estado del sistema"
+    "🛡️ Registro Guiado",
+    "📋 Tutorial Rápido",
+    "🎯 Primera Transmisión",
+    "💪 Soporte Técnico",
+    "�� Comunidad"
   ];
 
-  const suggestions = [
-    "¿Cómo reinicio mi contrase��a?",
-    "Tengo un problema técnico",
-    "¿Dónde encuentro mis facturas?",
-    "Ayuda con configuración"
-  ];
+  const supportJourneyStages = {
+    registro: {
+      title: "📝 Registro/Acción",
+      actions: ["Interfaz simple", "Tutorial rápido", "CTA directo transmisión"],
+      kpis: ["Registration Rate", "Tutorial Completion", "First Stream Success"]
+    },
+    participacion: {
+      title: "🎯 Participación",
+      actions: ["Herramientas clips integradas", "Notificaciones leads", "Mini-competencias"],
+      kpis: ["Daily Active Users", "Clips Created", "User Engagement"]
+    },
+    retencion: {
+      title: "🏆 Retención/Fidelización",
+      actions: ["Comunidad activa", "Eventos especiales", "Soporte 24/7"],
+      kpis: ["Retention Rate", "Community Participation", "Support Satisfaction"]
+    }
+  };
+
+  const handleSupportStage = (stage: string) => {
+    const stageData = supportJourneyStages[stage as keyof typeof supportJourneyStages];
+    if (stageData) {
+      const message = `Te ayudo con ${stageData.title}. Como líder de soporte, puedo asistirte con: ${stageData.actions.join(', ')}. Métricas importantes: ${stageData.kpis.join(', ')}`;
+      handleSendMessage(message);
+    }
+  };
 
   return (
     <ChatContainer>

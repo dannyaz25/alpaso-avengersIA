@@ -48,6 +48,16 @@ interface AssistantState {
   currentSession: ChatSession | null;
   isLoading: boolean;
   error: string | null;
+  // Nuevas propiedades para el viaje del barista
+  journeyStage: string | null;
+  derivationData: {
+    currentAssistant: string;
+    recommendedAssistant: string;
+    journeyStage: string;
+    reason: string;
+    confidence: number;
+  } | null;
+  showJourneyManager: boolean;
 }
 
 type AssistantAction =
@@ -58,14 +68,20 @@ type AssistantAction =
   | { type: 'END_SESSION' }
   | { type: 'ADD_MESSAGE'; payload: { sessionId: string; message: Message } }
   | { type: 'CLEAR_ERROR' }
-  | { type: 'UPDATE_SESSION'; payload: ChatSession };
+  | { type: 'UPDATE_SESSION'; payload: ChatSession }
+  | { type: 'SET_JOURNEY_STAGE'; payload: string | null }
+  | { type: 'SET_DERIVATION_DATA'; payload: AssistantState['derivationData'] }
+  | { type: 'TOGGLE_JOURNEY_MANAGER'; payload: boolean };
 
 const initialState: AssistantState = {
   activeAssistant: null,
   chatSessions: [],
   currentSession: null,
   isLoading: false,
-  error: null
+  error: null,
+  journeyStage: null,
+  derivationData: null,
+  showJourneyManager: false
 };
 
 function assistantReducer(state: AssistantState, action: AssistantAction): AssistantState {
@@ -160,6 +176,18 @@ function assistantReducer(state: AssistantState, action: AssistantAction): Assis
         chatSessions: updatedSessionsList,
         currentSession: updatedCurrentSessionFromPayload
       };
+      break;
+
+    case 'SET_JOURNEY_STAGE':
+      newState = { ...state, journeyStage: action.payload };
+      break;
+
+    case 'SET_DERIVATION_DATA':
+      newState = { ...state, derivationData: action.payload };
+      break;
+
+    case 'TOGGLE_JOURNEY_MANAGER':
+      newState = { ...state, showJourneyManager: action.payload };
       break;
 
     default:
@@ -390,6 +418,75 @@ export function AssistantProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'CLEAR_ERROR' });
   };
 
+  // Nuevas funciones para el sistema de derivación inteligente
+  const handleDerivationResponse = (response: AssistantResponse) => {
+    console.log('🎯 [DERIVATION] Analizando respuesta para detectar derivación...');
+
+    // Verificar si la respuesta incluye información de derivación
+    if (response.metadata?.needsDerivation) {
+      console.log('🔄 [DERIVATION] Derivación detectada:', {
+        from: state.activeAssistant?.id,
+        to: response.metadata.recommendedAssistant,
+        stage: response.metadata.journeyStage,
+        reason: response.metadata.derivationReason
+      });
+
+      // Establecer datos de derivación
+      const derivationData = {
+        currentAssistant: state.activeAssistant?.id || '',
+        recommendedAssistant: response.metadata.recommendedAssistant,
+        journeyStage: response.metadata.journeyStage,
+        reason: response.metadata.derivationReason,
+        confidence: response.metadata.confidence || 0.8
+      };
+
+      dispatch({ type: 'SET_DERIVATION_DATA', payload: derivationData });
+      dispatch({ type: 'SET_JOURNEY_STAGE', payload: response.metadata.journeyStage });
+      dispatch({ type: 'TOGGLE_JOURNEY_MANAGER', payload: true });
+    } else {
+      // Actualizar etapa del viaje si está disponible
+      if (response.metadata?.journeyStage) {
+        dispatch({ type: 'SET_JOURNEY_STAGE', payload: response.metadata.journeyStage });
+      }
+    }
+  };
+
+  const acceptDerivation = (targetAssistantId: string) => {
+    console.log('✅ [DERIVATION] Usuario acepta derivación a:', targetAssistantId);
+
+    // Cerrar el Journey Manager
+    dispatch({ type: 'TOGGLE_JOURNEY_MANAGER', payload: false });
+    dispatch({ type: 'SET_DERIVATION_DATA', payload: null });
+
+    // Finalizar sesión actual
+    endSession();
+
+    // Iniciar nueva sesión con el asistente recomendado
+    setTimeout(() => {
+      startNewSession(targetAssistantId);
+    }, 500); // Pequeña pausa para la transición visual
+  };
+
+  const declineDerivation = () => {
+    console.log('❌ [DERIVATION] Usuario declina derivación');
+
+    // Cerrar el Journey Manager
+    dispatch({ type: 'TOGGLE_JOURNEY_MANAGER', payload: false });
+    dispatch({ type: 'SET_DERIVATION_DATA', payload: null });
+  };
+
+  // Función mejorada de sendMessage que incluye manejo de derivación
+  const sendMessageWithJourney = async (message: string): Promise<AssistantResponse | undefined> => {
+    const response = await sendMessage(message);
+
+    if (response) {
+      // Procesar respuesta para detectar derivaciones
+      handleDerivationResponse(response);
+    }
+
+    return response;
+  };
+
   const value: AssistantContextType = {
     activeAssistant: state.activeAssistant,
     chatSessions: state.chatSessions,
@@ -398,7 +495,7 @@ export function AssistantProvider({ children }: { children: ReactNode }) {
     error: state.error,
     assistants: ASSISTANTS,
     startNewSession,
-    sendMessage,
+    sendMessage: sendMessageWithJourney,
     endSession,
     endCall,
     clearError,
