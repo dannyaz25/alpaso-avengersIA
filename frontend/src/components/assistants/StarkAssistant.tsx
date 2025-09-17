@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import styled from 'styled-components';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, Zap, TrendingUp, Target, BarChart3, Lightbulb, Mic, MicOff, Volume2, VolumeX, Phone, PhoneCall } from 'lucide-react';
+//import { Send, Zap, TrendingUp, Target, BarChart3, Lightbulb, Mic, MicOff, Volume2, VolumeX, Phone, PhoneCall } from 'lucide-react';
+import { Send,Zap, Shield, CheckCircle, AlertTriangle, HelpCircle, Settings, Mic, MicOff, Volume2, VolumeX, Phone, PhoneCall } from 'lucide-react';
 import { useAssistant } from '../../contexts/AssistantContext';
 
 const ChatContainer = styled.div`
@@ -49,121 +50,69 @@ const Name = styled.h1`
   font-size: 2rem;
   color: #ffd700;
   margin-bottom: 0.5rem;
+  font-weight: 800;
 `;
 
 const Role = styled.p`
-  color: #ccc;
+  color: rgba(255, 255, 255, 0.8);
   font-size: 1.1rem;
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
 `;
 
-const CallControls = styled.div`
-  display: flex;
-  gap: 1rem;
-  align-items: center;
-`;
-
-const CallButton = styled.button<{ $isActive?: boolean }>`
+const Status = styled.div`
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.75rem 1.5rem;
-  border: none;
-  border-radius: 25px;
-  background: ${props => props.$isActive ? '#ef4444' : '#10b981'};
-  color: white;
+  color: #10b981;
+  font-size: 0.9rem;
+`;
+
+const QuickActions = styled.div`
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+`;
+
+const ActionButton = styled(motion.button)`
+  background: rgba(255, 215, 0, 0.2);
+  border: 1px solid rgba(255, 215, 0, 0.3);
+  color: #ffd700;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.9rem;
   cursor: pointer;
-  font-weight: 600;
   transition: all 0.3s ease;
 
   &:hover {
-    background: ${props => props.$isActive ? '#dc2626' : '#059669'};
-    transform: scale(1.05);
+    background: rgba(255, 215, 0, 0.3);
+    transform: translateY(-2px);
   }
 `;
 
 const ChatArea = styled.div`
   flex: 1;
+  display: flex;
+  flex-direction: column;
   max-width: 1200px;
   margin: 0 auto;
   width: 100%;
-  padding: 2rem;
-  display: flex;
-  flex-direction: column;
-`;
-
-const WelcomeMessage = styled(motion.div)`
-  text-align: center;
-  padding: 3rem 2rem;
-  background: rgba(255, 215, 0, 0.1);
-  border-radius: 20px;
-  border: 1px solid rgba(255, 215, 0, 0.3);
-  margin-bottom: 2rem;
-`;
-
-const WelcomeText = styled.h2`
-  color: #ffd700;
-  font-size: 1.3rem;
-  line-height: 1.6;
-  margin-bottom: 1rem;
-`;
-
-const Features = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
-  margin-top: 2rem;
-`;
-
-const FeatureCard = styled(motion.div)`
-  background: rgba(255, 215, 0, 0.1);
-  padding: 1.5rem;
-  border-radius: 15px;
-  border: 1px solid rgba(255, 215, 0, 0.2);
-  text-align: center;
-  cursor: pointer;
-  transition: all 0.3s ease;
-
-  &:hover {
-    transform: translateY(-5px);
-    border-color: #ffd700;
-    box-shadow: 0 10px 25px rgba(255, 215, 0, 0.2);
-  }
-`;
-
-const FeatureIcon = styled.div`
-  color: #ffd700;
-  margin-bottom: 0.5rem;
-  display: flex;
-  justify-content: center;
-`;
-
-const FeatureTitle = styled.h3`
-  color: #ffd700;
-  font-size: 1rem;
-  margin-bottom: 0.5rem;
-`;
-
-const FeatureDescription = styled.p`
-  color: #ccc;
-  font-size: 0.9rem;
-  line-height: 1.4;
+  padding: 0 2rem;
 `;
 
 const MessagesContainer = styled.div`
   flex: 1;
+  padding: 2rem 0;
   overflow-y: auto;
-  padding: 1rem 0;
   max-height: 60vh;
 `;
 
-const MessageBubble = styled(motion.div)<{ $isUser: boolean }>`
+const Message = styled(motion.div)<{ $isUser: boolean }>`
   display: flex;
   justify-content: ${props => props.$isUser ? 'flex-end' : 'flex-start'};
   margin-bottom: 1rem;
 `;
 
-const MessageContent = styled.div<{ $isUser: boolean }>`
+const MessageBubble = styled.div<{ $isUser: boolean }>`
   max-width: 70%;
   padding: 1rem 1.5rem;
   border-radius: 20px;
@@ -171,116 +120,34 @@ const MessageContent = styled.div<{ $isUser: boolean }>`
     ? 'linear-gradient(135deg, #ffd700, #ffed4a)'
     : 'rgba(255, 255, 255, 0.1)'};
   color: ${props => props.$isUser ? '#1a1a1a' : 'white'};
-  border: ${props => props.$isUser ? 'none' : '1px solid rgba(255, 215, 0, 0.3)'};
-  backdrop-filter: blur(10px);
-`;
-
-const MessageText = styled.p`
-  margin: 0;
-  line-height: 1.5;
-`;
-
-const MessageTime = styled.div`
-  font-size: 0.75rem;
-  opacity: 0.7;
-  margin-top: 0.5rem;
-  display: block;
-`;
-
-const TypingIndicator = styled.div`
-  display: flex;
-  gap: 4px;
-  padding: 1rem;
-
-  span {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: #ffd700;
-    animation: typing 1.4s ease-in-out infinite;
-
-    &:nth-child(2) {
-      animation-delay: 0.2s;
-    }
-
-    &:nth-child(3) {
-      animation-delay: 0.4s;
-    }
-  }
-
-  @keyframes typing {
-    0%, 60%, 100% {
-      transform: translateY(0);
-    }
-    30% {
-      transform: translateY(-10px);
-    }
-  }
+  backdrop-filter: blur(20px);
+  border: 1px solid ${props => props.$isUser
+    ? 'transparent'
+    : 'rgba(255, 255, 255, 0.1)'};
 `;
 
 const InputArea = styled.div`
+  padding: 2rem 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+`;
+
+const InputContainer = styled.div`
   display: flex;
   gap: 1rem;
-  align-items: center;
-  padding: 1.5rem 0;
-  border-top: 1px solid rgba(255, 215, 0, 0.2);
+  align-items: flex-end;
 `;
 
-const VoiceControls = styled.div`
-  display: flex;
-  gap: 0.5rem;
-`;
-
-const VoiceButton = styled.button<{ $isActive: boolean }>`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  border: 2px solid ${props => props.$isActive ? '#ef4444' : '#ffd700'};
-  background: ${props => props.$isActive ? '#ef4444' : 'transparent'};
-  color: ${props => props.$isActive ? 'white' : '#ffd700'};
-  cursor: pointer;
-  transition: all 0.3s ease;
-
-  &:hover {
-    background: ${props => props.$isActive ? '#dc2626' : 'rgba(255, 215, 0, 0.1)'};
-  }
-
-  &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-`;
-
-const SpeakerButton = styled.button<{ $isActive: boolean }>`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  border: 2px solid ${props => props.$isActive ? '#10b981' : '#666'};
-  background: ${props => props.$isActive ? '#10b981' : 'transparent'};
-  color: ${props => props.$isActive ? 'white' : '#666'};
-  cursor: default;
-  transition: all 0.3s ease;
-`;
-
-const MessageInput = styled.textarea`
+const Input = styled.textarea`
   flex: 1;
-  padding: 1rem 1.5rem;
-  border: 2px solid rgba(255, 215, 0, 0.3);
-  border-radius: 25px;
   background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 20px;
+  padding: 1rem 1.5rem;
   color: white;
+  font-size: 1rem;
   resize: none;
   min-height: 50px;
   max-height: 120px;
-  font-family: inherit;
-  font-size: 1rem;
-  backdrop-filter: blur(10px);
 
   &::placeholder {
     color: rgba(255, 255, 255, 0.5);
@@ -289,60 +156,166 @@ const MessageInput = styled.textarea`
   &:focus {
     outline: none;
     border-color: #ffd700;
-    background: rgba(255, 255, 255, 0.15);
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.2);
   }
+`;
+
+const SendButton = styled(motion.button)`
+  background: linear-gradient(135deg, #ffd700, #ffed4a);
+  border: none;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #1a1a1a;
+  cursor: pointer;
 
   &:disabled {
-    opacity: 0.6;
+    opacity: 0.5;
     cursor: not-allowed;
   }
 `;
 
-const SendButton = styled.button`
+const TypingIndicator = styled(motion.div)`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: rgba(255, 255, 255, 0.6);
+  font-style: italic;
+  margin-bottom: 1rem;
+`;
+
+const Suggestions = styled.div`
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 1rem;
+`;
+
+const SuggestionChip = styled(motion.button)`
+  background: rgba(255, 215, 0, 0.1);
+  border: 1px solid rgba(255, 215, 0, 0.3);
+  color: #ffd700;
+  padding: 0.5rem 1rem;
+  border-radius: 15px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+
+  &:hover {
+    background: rgba(255, 215, 0, 0.2);
+  }
+`;
+
+const SupportBadge = styled.div`
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(16, 185, 129, 0.2);
+  color: #10b981;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  margin-left: 1rem;
+`;
+
+const VoiceControls = styled.div`
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  margin-bottom: 1rem;
+`;
+
+const VoiceButton = styled(motion.button)<{ $isActive?: boolean }>`
+  background: ${props => props.$isActive
+    ? 'linear-gradient(135deg, #ffd700, #ffed4a)'
+    : 'rgba(255, 215, 0, 0.1)'};
+  border: 1px solid rgba(255, 215, 0, 0.3);
+  color: ${props => props.$isActive ? '#1a1a1a' : '#ffd700'};
+  padding: 0.75rem;
+  border-radius: 50%;
+  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   width: 50px;
   height: 50px;
-  border-radius: 50%;
-  border: none;
-  background: linear-gradient(135deg, #ffd700, #ffed4a);
-  color: #1a1a1a;
-  cursor: pointer;
   transition: all 0.3s ease;
 
-  &:hover:not(:disabled) {
-    transform: scale(1.1);
-    box-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
-  }
-
-  &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    transform: none;
+  &:hover {
+    background: ${props => props.$isActive
+      ? 'linear-gradient(135deg, #ffed4a, #ffd700)'
+      : 'rgba(255, 215, 0, 0.2)'};
+    transform: scale(1.05);
   }
 `;
 
-const ErrorMessage = styled.div`
-  padding: 1rem;
-  background: rgba(239, 68, 68, 0.1);
-  border: 1px solid #ef4444;
-  border-radius: 8px;
-  color: #fca5a5;
-  margin: 1rem 0;
-  text-align: center;
+const CallStatus = styled(motion.div)<{ $isInCall: boolean }>`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  background: ${props => props.$isInCall
+    ? 'rgba(16, 185, 129, 0.2)'
+    : 'rgba(239, 68, 68, 0.2)'};
+  border: 1px solid ${props => props.$isInCall
+    ? 'rgba(16, 185, 129, 0.3)'
+    : 'rgba(239, 68, 68, 0.3)'};
+  color: ${props => props.$isInCall ? '#10b981' : '#ef4444'};
+  font-size: 0.9rem;
+`;
+
+const ListeningIndicator = styled(motion.div)`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #ffd700;
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+`;
+
+const WaveForm = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  height: 20px;
+`;
+
+const Wave = styled(motion.div)`
+  width: 3px;
+  background: #ffd700;
+  border-radius: 2px;
+`;
+
+const ThinkingIndicator = styled(motion.div)`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: rgba(255, 255, 255, 0.6);
+  font-style: italic;
+  margin-bottom: 1rem;
+`;
+
+const BrainWave = styled(motion.div)`
+  width: 8px;
+  height: 8px;
+  background: #ffd700;
+  border-radius: 50%;
 `;
 
 const StarkAssistant: React.FC = () => {
   const [inputMessage, setInputMessage] = useState('');
-  const [isInCall, setIsInCall] = useState(false);
   const [isListening, setIsListening] = useState(false);
-  const [isSpeaking, setIsSpeaking] = useState(false);
-  const [hasAudioPermission, setHasAudioPermission] = useState(false);
+  const [isVoiceEnabled, setIsVoiceEnabled] = useState(true);
+  const [isInCall, setIsInCall] = useState(false);
+  const [isThinking, setIsThinking] = useState(false);
 
   const recognitionRef = useRef<SpeechRecognition | null>(null);
-  const synthRef = useRef<SpeechSynthesisUtterance | null>(null);
-  const audioContextRef = useRef<AudioContext | null>(null);
+  const synthRef = useRef<SpeechSynthesis | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const {
     currentSession,
@@ -354,6 +327,13 @@ const StarkAssistant: React.FC = () => {
     error
   } = useAssistant();
 
+  // Inicializar síntesis de voz
+  useEffect(() => {
+    if ('speechSynthesis' in window) {
+      synthRef.current = window.speechSynthesis;
+    }
+  }, []);
+
   // Inicializar reconocimiento de voz
   useEffect(() => {
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
@@ -361,192 +341,132 @@ const StarkAssistant: React.FC = () => {
       recognitionRef.current = new SpeechRecognition();
 
       if (recognitionRef.current) {
-        recognitionRef.current.continuous = true;
-        recognitionRef.current.interimResults = true;
+        recognitionRef.current.continuous = false;
+        recognitionRef.current.interimResults = false;
         recognitionRef.current.lang = 'es-ES';
 
         recognitionRef.current.onstart = () => setIsListening(true);
         recognitionRef.current.onend = () => setIsListening(false);
 
         recognitionRef.current.onresult = (event) => {
-          let finalTranscript = '';
-          let interimTranscript = '';
-
-          for (let i = event.resultIndex; i < event.results.length; i++) {
-            const result = event.results[i];
-            if (result.isFinal) {
-              finalTranscript += result[0].transcript;
-            } else {
-              interimTranscript += result[0].transcript;
-            }
-          }
-
-          if (interimTranscript) {
-            setInputMessage(interimTranscript);
-          }
-
-          if (finalTranscript) {
-            setInputMessage(finalTranscript);
-            setTimeout(() => {
-              handleSendMessage(finalTranscript);
-            }, 500);
-          }
+          const transcript = event.results[0][0].transcript;
+          setInputMessage(transcript);
+          setTimeout(() => {
+            handleSendMessage(transcript);
+          }, 500);
         };
 
         recognitionRef.current.onerror = (event) => {
-          console.error('❌ [VOICE] Error en reconocimiento:', event.error);
+          console.error('Speech recognition error:', event.error);
           setIsListening(false);
         };
       }
     }
   }, []);
 
-  // Función para convertir texto a voz
-  const speakText = async (text: string) => {
-    if (!text || isSpeaking) return;
-
-    try {
-      setIsSpeaking(true);
-      speechSynthesis.cancel();
-
-      const utterance = new SpeechSynthesisUtterance(text);
-
-      const voices = speechSynthesis.getVoices();
-      const spanishVoice = voices.find(voice =>
-        voice.lang.includes('es') &&
-        (voice.lang.includes('MX') || voice.lang.includes('AR') || voice.lang.includes('CO'))
-      ) || voices.find(voice => voice.lang.includes('es'));
-
-      if (spanishVoice) {
-        utterance.voice = spanishVoice;
-      }
-
-      utterance.rate = 1.1;
-      utterance.pitch = 0.9;
-      utterance.volume = 0.8;
-
-      utterance.onend = () => setIsSpeaking(false);
-      utterance.onerror = () => setIsSpeaking(false);
-
-      synthRef.current = utterance;
-      speechSynthesis.speak(utterance);
-    } catch (error) {
-      console.error('❌ [TTS] Error al hablar:', error);
-      setIsSpeaking(false);
-    }
-  };
-
-  // Inicializar AudioContext
-  const initializeAudioContext = useCallback(() => {
-    try {
-      if (!audioContextRef.current) {
-        const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
-        audioContextRef.current = new AudioContextClass();
-      }
-      return audioContextRef.current;
-    } catch (error) {
-      console.error('❌ Error inicializando AudioContext:', error);
-      return null;
-    }
+  // Iniciar sesión automáticamente
+  useEffect(() => {
+    // Iniciar sesión automáticamente
+    startNewSession('stark');
+    setIsInCall(true);
+    playNotificationSound('connect');
   }, []);
 
-  // Reproducir sonido
-  const playSound = useCallback((frequency: number, duration: number) => {
-    const audioContext = initializeAudioContext();
-    if (!audioContext) return;
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [currentSession?.messages]);
 
-    try {
+  const playNotificationSound = (type: 'start' | 'end' | 'connect' | 'message') => {
+    const audioContext = new AudioContext();
+    const frequencies = {
+      start: [800, 1000],
+      end: [1000, 800],
+      connect: [700, 900, 1100],
+      message: [500, 700]
+    };
+
+    frequencies[type].forEach((freq, index) => {
       const oscillator = audioContext.createOscillator();
       const gainNode = audioContext.createGain();
 
       oscillator.connect(gainNode);
       gainNode.connect(audioContext.destination);
 
-      oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
-      oscillator.type = 'sine';
-
+      oscillator.frequency.setValueAtTime(freq, audioContext.currentTime);
       gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + duration);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
 
-      oscillator.start();
-      oscillator.stop(audioContext.currentTime + duration);
-    } catch (error) {
-      console.error('❌ Error reproduciendo sonido:', error);
-    }
-  }, [initializeAudioContext]);
+      oscillator.start(audioContext.currentTime + index * 0.1);
+      oscillator.stop(audioContext.currentTime + 0.2 + index * 0.1);
+    });
+  };
 
-  // Iniciar llamada
-  const startCall = useCallback(async () => {
-    try {
-      await navigator.mediaDevices.getUserMedia({ audio: true });
-      setHasAudioPermission(true);
-      setIsInCall(true);
-      playSound(800, 0.2);
+  const speakResponse = (text: string) => {
+    if (!isVoiceEnabled || !synthRef.current) return;
 
-      // Iniciar sesión del asistente
-      startNewSession('stark');
-    } catch (error) {
-      console.error('❌ Error al iniciar llamada:', error);
-      alert('No se pudo acceder al micrófono. Por favor, concede los permisos necesarios.');
-    }
-  }, [playSound, startNewSession]);
+    synthRef.current.cancel();
 
-  // Terminar llamada
-  const endCall = useCallback(() => {
-    setIsInCall(false);
-    setIsListening(false);
-    setIsSpeaking(false);
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'es-ES';
+    utterance.rate = 1.1; // Stark habla más rápido y dinámico
+    utterance.pitch = 0.9; // Tono más alto y tecnológico
+    utterance.volume = 0.8;
 
-    if (recognitionRef.current) {
-      recognitionRef.current.stop();
-    }
+    utterance.onstart = () => {
+      playNotificationSound('message');
+    };
 
-    speechSynthesis.cancel();
-    endSession();
-    playSound(400, 0.3);
-  }, [endSession, playSound]);
+    utterance.onend = () => {
+      setIsThinking(false);
+    };
 
-  // Toggle del micrófono
-  const toggleListening = useCallback(() => {
-    if (!isInCall || !recognitionRef.current) return;
+    synthRef.current.speak(utterance);
+  };
 
-    if (isListening) {
-      recognitionRef.current.stop();
-    } else {
-      navigator.mediaDevices.getUserMedia({ audio: true })
-        .then(() => {
-          if (recognitionRef.current) {
-            recognitionRef.current.start();
-          }
-        })
-        .catch(console.error);
-    }
-  }, [isListening, isInCall]);
-
-  // Manejar envío de mensajes
-  const handleSendMessage = useCallback(async (message?: string) => {
+  const handleSendMessage = async (message?: string) => {
     const messageToSend = message || inputMessage;
     if (!messageToSend.trim() || isLoading) return;
 
+    setIsThinking(true);
+    const response = await sendMessage(messageToSend);
     setInputMessage('');
 
-    try {
-      if (!currentSession) {
-        startNewSession('stark');
-        await new Promise(resolve => setTimeout(resolve, 100));
+    setTimeout(() => {
+      if (response?.text) {
+        speakResponse(response.text);
       }
+    }, 500);
+  };
 
-      const response = await sendMessage(messageToSend);
+  const toggleListening = () => {
+    if (!recognitionRef.current) return;
 
-      if (response?.text && isInCall) {
-        await speakText(response.text);
-      }
-    } catch (error) {
-      console.error('❌ Error enviando mensaje:', error);
+    if (isListening) {
+      recognitionRef.current.stop();
+      playNotificationSound('end');
+    } else {
+      recognitionRef.current.start();
     }
-  }, [inputMessage, isLoading, sendMessage, startNewSession, currentSession, speakText, isInCall]);
+  };
 
-  // Manejar tecla Enter
+  const toggleVoice = () => {
+    setIsVoiceEnabled(!isVoiceEnabled);
+    if (isVoiceEnabled) {
+      synthRef.current?.cancel();
+    }
+  };
+
+  const toggleCall = () => {
+    setIsInCall(!isInCall);
+    playNotificationSound(isInCall ? 'end' : 'connect');
+    if (!isInCall) {
+      synthRef.current?.cancel();
+      if (recognitionRef.current && isListening) {
+        recognitionRef.current.stop();
+      }
+    }
+  };
+
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -554,11 +474,13 @@ const StarkAssistant: React.FC = () => {
     }
   };
 
-  // Sugerencias de conversación
-  const handleFeatureClick = (message: string) => {
-    setInputMessage(message);
-    handleSendMessage(message);
-  };
+const quickActions = [
+    "Metricas",
+    "Landing",
+    "Clips Virales",
+    "Contactar soporte humano",
+    "Estado del sistema"
+  ];
 
   return (
     <ChatContainer>
@@ -569,149 +491,202 @@ const StarkAssistant: React.FC = () => {
       >
         <HeaderContent>
           <Avatar>
-            <Zap />
+            <Zap size={32} />
           </Avatar>
           <HeaderInfo>
             <Name>Stark</Name>
-            <Role>Asistente de Marketing - Especialista en innovación y crecimiento</Role>
+            <Role>Marketing Assistant</Role>
+            <CallStatus $isInCall={isInCall}>
+                         {isInCall ? <PhoneCall size={16} /> : <Phone size={16} />}
+                         {isInCall ? 'En llamada' : 'Desconectado'}
+                       </CallStatus>
           </HeaderInfo>
-          <CallControls>
-            {!isInCall ? (
-              <CallButton onClick={startCall}>
-                <Phone size={20} />
-                Iniciar Llamada
-              </CallButton>
-            ) : (
-              <CallButton $isActive onClick={endCall}>
-                <PhoneCall size={20} />
-                Terminar Llamada
-              </CallButton>
+
+          <QuickActions>
+                          {quickActions.map((action, index) => (
+                          <ActionButton
+                              key={index}
+                              whileHover={{ scale: 1.05 }}
+                              whileTap={{ scale: 0.95 }}
+                              onClick={() => handleSendMessage(action)}
+                          >
+                              {action}
+                          </ActionButton>
+                          ))}
+                          <SupportBadge>
+                          <CheckCircle size={16} />
+                          Soporte 24/7
+                          </SupportBadge>
+                          </QuickActions>
+          <VoiceControls>
+            <VoiceButton
+              $isActive={isInCall}
+              onClick={toggleCall}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              {isInCall ? <PhoneCall size={20} /> : <Phone size={20} />}
+            </VoiceButton>
+            {isInCall && (
+              <>
+                <VoiceButton
+                  $isActive={isListening}
+                  onClick={toggleListening}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  {isListening ? <MicOff size={20} /> : <Mic size={20} />}
+                </VoiceButton>
+                <VoiceButton
+                  $isActive={isVoiceEnabled}
+                  onClick={toggleVoice}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  {isVoiceEnabled ? <Volume2 size={20} /> : <VolumeX size={20} />}
+                </VoiceButton>
+              </>
             )}
-          </CallControls>
+          </VoiceControls>
         </HeaderContent>
       </Header>
 
       <ChatArea>
-        {!currentSession ? (
-          <WelcomeMessage
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
+        {isListening && (
+          <ListeningIndicator
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
           >
-            <WelcomeText>
-              Hola, soy Stark. No te voy a aburrir con discursos largos… vine a mostrarte cómo hacer que tu negocio brille como un reactor arc.
-            </WelcomeText>
-
-            <Features>
-              <FeatureCard
-                whileHover={{ scale: 1.05 }}
-                onClick={() => handleFeatureClick('¿Cómo puedo mejorar mi estrategia de marketing?')}
-              >
-                <FeatureIcon><Target size={24} /></FeatureIcon>
-                <FeatureTitle>Estrategia</FeatureTitle>
-                <FeatureDescription>Optimiza tu enfoque de marketing</FeatureDescription>
-              </FeatureCard>
-
-              <FeatureCard
-                whileHover={{ scale: 1.05 }}
-                onClick={() => handleFeatureClick('¿Qué tendencias de marketing debo seguir?')}
-              >
-                <FeatureIcon><TrendingUp size={24} /></FeatureIcon>
-                <FeatureTitle>Tendencias</FeatureTitle>
-                <FeatureDescription>Mantente al día con lo último</FeatureDescription>
-              </FeatureCard>
-
-              <FeatureCard
-                whileHover={{ scale: 1.05 }}
-                onClick={() => handleFeatureClick('¿Cómo medir el ROI de mis campañas?')}
-              >
-                <FeatureIcon><BarChart3 size={24} /></FeatureIcon>
-                <FeatureTitle>Analytics</FeatureTitle>
-                <FeatureDescription>Mide y optimiza resultados</FeatureDescription>
-              </FeatureCard>
-
-              <FeatureCard
-                whileHover={{ scale: 1.05 }}
-                onClick={() => handleFeatureClick('Dame ideas creativas para mi próxima campaña')}
-              >
-                <FeatureIcon><Lightbulb size={24} /></FeatureIcon>
-                <FeatureTitle>Creatividad</FeatureTitle>
-                <FeatureDescription>Ideas innovadoras</FeatureDescription>
-              </FeatureCard>
-            </Features>
-          </WelcomeMessage>
-        ) : (
-          <MessagesContainer>
-            <AnimatePresence>
-              {currentSession.messages.map((message) => (
-                <MessageBubble
-                  key={message.id}
-                  $isUser={message.sender === 'user'}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <MessageContent $isUser={message.sender === 'user'}>
-                    <MessageText>{message.text}</MessageText>
-                    <MessageTime>
-                      {new Date(message.timestamp).toLocaleTimeString()}
-                    </MessageTime>
-                  </MessageContent>
-                </MessageBubble>
+            <Mic size={16} />
+            Escuchando...
+            <WaveForm>
+              {[...Array(5)].map((_, i) => (
+                <Wave
+                  key={i}
+                  animate={{
+                    height: [4, 16, 4],
+                  }}
+                  transition={{
+                    duration: 0.5,
+                    repeat: Infinity,
+                    delay: i * 0.1,
+                  }}
+                />
               ))}
-              {isLoading && (
-                <MessageBubble $isUser={false}>
-                  <MessageContent $isUser={false}>
-                    <TypingIndicator>
-                      <span></span>
-                      <span></span>
-                      <span></span>
-                    </TypingIndicator>
-                  </MessageContent>
+            </WaveForm>
+          </ListeningIndicator>
+        )}
+
+        {isThinking && (
+          <ThinkingIndicator
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <Lightbulb size={16} />
+            Stark está analizando...
+            {[...Array(3)].map((_, i) => (
+              <BrainWave
+                key={i}
+                animate={{
+                  scale: [1, 1.5, 1],
+                  opacity: [0.5, 1, 0.5],
+                }}
+                transition={{
+                  duration: 1,
+                  repeat: Infinity,
+                  delay: i * 0.3,
+                }}
+              />
+            ))}
+          </ThinkingIndicator>
+        )}
+
+        <MessagesContainer>
+          <AnimatePresence>
+            {currentSession?.messages?.map((message, index) => (
+              <Message
+                key={index}
+                $isUser={message.sender === 'user'}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.3 }}
+              >
+                <MessageBubble $isUser={message.sender === 'user'}>
+                  {message.text}
                 </MessageBubble>
-              )}
-            </AnimatePresence>
-          </MessagesContainer>
+              </Message>
+            ))}
+          </AnimatePresence>
+          <div ref={messagesEndRef} />
+        </MessagesContainer>
+
+        {isLoading && (
+          <TypingIndicator
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <Zap size={16} />
+            Stark está escribiendo...
+          </TypingIndicator>
         )}
 
         {isInCall && (
           <InputArea>
-            <VoiceControls>
-              <VoiceButton
-                $isActive={isListening}
-                onClick={toggleListening}
-                disabled={!isInCall}
+            <InputContainer>
+              <Input
+                value={inputMessage}
+                onChange={(e) => setInputMessage(e.target.value)}
+                onKeyPress={handleKeyPress}
+                placeholder="Escribe tu mensaje o usa el micrófono..."
+                disabled={isLoading}
+              />
+              <SendButton
+                onClick={() => handleSendMessage()}
+                disabled={!inputMessage.trim() || isLoading}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
               >
-                {isListening ? <MicOff size={20} /> : <Mic size={20} />}
-              </VoiceButton>
+                <Send size={20} />
+              </SendButton>
+            </InputContainer>
 
-              <SpeakerButton $isActive={isSpeaking}>
-                {isSpeaking ? <Volume2 size={20} /> : <VolumeX size={20} />}
-              </SpeakerButton>
-            </VoiceControls>
-
-            <MessageInput
-              value={inputMessage}
-              onChange={(e) => setInputMessage(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder="Escribe tu mensaje o usa el micrófono..."
-              disabled={isLoading}
-            />
-
-            <SendButton
-              onClick={() => handleSendMessage()}
-              disabled={!inputMessage.trim() || isLoading}
-            >
-              <Send size={20} />
-            </SendButton>
+            {currentSession?.lastResponse?.suggestions && (
+              <Suggestions>
+                {currentSession.lastResponse.suggestions.map((suggestion, index) => (
+                  <SuggestionChip
+                    key={index}
+                    onClick={() => handleSendMessage(suggestion)}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    {suggestion}
+                  </SuggestionChip>
+                ))}
+              </Suggestions>
+            )}
           </InputArea>
         )}
 
         {error && (
-          <ErrorMessage>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            style={{
+              padding: '1rem',
+              background: 'rgba(239, 68, 68, 0.1)',
+              border: '1px solid #ef4444',
+              borderRadius: '8px',
+              color: '#fca5a5',
+              margin: '1rem 0',
+              textAlign: 'center'
+            }}
+          >
             Error: {error}
-          </ErrorMessage>
+          </motion.div>
         )}
       </ChatArea>
     </ChatContainer>

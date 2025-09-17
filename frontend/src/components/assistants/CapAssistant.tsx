@@ -501,6 +501,22 @@ function CapAssistant() {
               {isInCall ? 'En llamada' : 'Desconectado'}
             </CallStatus>
           </HeaderInfo>
+            <QuickActions>
+                {quickActions.map((action, index) => (
+                <ActionButton
+                    key={index}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => handleSendMessage(action)}
+                >
+                    {action}
+                </ActionButton>
+                ))}
+                <SupportBadge>
+                <CheckCircle size={16} />
+                Soporte 24/7
+                </SupportBadge>
+                </QuickActions>
           <VoiceControls>
             <VoiceButton
               $isActive={isInCall}

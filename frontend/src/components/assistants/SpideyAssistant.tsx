@@ -1,8 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import styled from 'styled-components';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, Zap, Heart, Smile, Code, Bug, Mic, MicOff, Volume2, VolumeX, Phone, PhoneCall } from 'lucide-react';
+//import { Send, Zap, Heart, Smile, Code, Bug, Mic, MicOff, Volume2, VolumeX, Phone, PhoneCall } from 'lucide-react';
+import { Send, Shield, CheckCircle, AlertTriangle, HelpCircle, Settings, Mic, MicOff, Volume2, VolumeX, Phone, PhoneCall } from 'lucide-react';
 import { useAssistant } from '../../contexts/AssistantContext';
+
+
 
 const ChatContainer = styled.div`
   min-height: 100vh;
@@ -56,6 +59,14 @@ const Role = styled.p`
   color: rgba(255, 255, 255, 0.8);
   font-size: 1.1rem;
   margin-bottom: 0.5rem;
+`;
+
+const Status = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #10b981;
+  font-size: 0.9rem;
 `;
 
 const ChatArea = styled.div`
@@ -254,6 +265,41 @@ const BrainWave = styled(motion.div)`
   background: #ef4444;
 `;
 
+const QuickActions = styled.div`
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+`;
+
+const ActionButton = styled(motion.button)`
+  background: rgba(220, 38, 38, 0.2);
+  border: 1px solid rgba(220, 38, 38, 0.3);
+  color: #ef4444;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+
+  &:hover {
+    background: rgba(220, 38, 38, 0.3);
+    transform: translateY(-2px);
+  }
+`;
+
+const SupportBadge = styled.div`
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(16, 185, 129, 0.2);
+  color: #10b981;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  margin-left: 1rem;
+`;
+
+
 function SpideyAssistant() {
   const { startNewSession, sendMessage, currentSession, isLoading } = useAssistant();
   const [inputMessage, setInputMessage] = useState('');
@@ -405,6 +451,14 @@ function SpideyAssistant() {
     }
   };
 
+const quickActions = [
+    "Reportar un problema",
+    "Ayuda con mi cuenta",
+    "Guía paso a paso",
+    "Contactar soporte humano",
+    "Estado del sistema"
+  ];
+
   return (
     <ChatContainer>
       <Header
@@ -430,11 +484,27 @@ function SpideyAssistant() {
           <HeaderInfo>
             <Name>Peter Parker</Name>
             <Role>Tech Support & Development Assistant</Role>
-            <CallStatus $isInCall={isInCall}>
-              {isInCall ? <PhoneCall size={16} /> : <Phone size={16} />}
-              {isInCall ? 'En llamada' : 'Desconectado'}
-            </CallStatus>
+             <CallStatus $isInCall={isInCall}>
+                          {isInCall ? <PhoneCall size={16} /> : <Phone size={16} />}
+                          {isInCall ? 'En llamada' : 'Desconectado'}
+                        </CallStatus>
           </HeaderInfo>
+            <QuickActions>
+                       {quickActions.map((action, index) => (
+                       <ActionButton
+                           key={index}
+                           whileHover={{ scale: 1.05 }}
+                           whileTap={{ scale: 0.95 }}
+                           onClick={() => handleSendMessage(action)}
+                       >
+                           {action}
+                       </ActionButton>
+                       ))}
+                       <SupportBadge>
+                       <CheckCircle size={16} />
+                       Soporte 24/7
+                       </SupportBadge>
+       </QuickActions>
           <VoiceControls>
             <VoiceButton
               $isActive={isInCall}
