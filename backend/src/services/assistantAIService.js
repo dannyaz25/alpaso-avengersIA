@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { logger } from '../utils/logger.js';
+import { baristaAutomation } from './baristaAutomationService.js';
 
 class AssistantAIService {
   constructor() {
@@ -454,16 +455,42 @@ ${assistant.name}:`;
     };
   }
 
-  // Generar respuesta con contexto del viaje del barista
-  async generateJourneyAwareResponse(assistantId, message, context = []) {
+  // Generar respuesta con contexto del viaje del barista y automatización
+  async generateJourneyAwareResponse(assistantId, message, context = [], userProfile = null) {
     try {
       // 1. Detectar etapa del viaje del barista
       const journeyAnalysis = this.detectJourneyStage(message);
 
-      // 2. Verificar si necesita derivación
+      // 2. 🤖 ACTIVAR AUTOMATIZACIÓN INTERNA según el mapa proporcionado
+      if (userProfile) {
+        console.log(`🚀 [AUTOMATION] Detectada etapa ${journeyAnalysis.stage}, activando automatización...`);
+
+        try {
+          const automationResult = await baristaAutomation.triggerAutomation(
+            journeyAnalysis.stage,
+            userProfile,
+            assistantId
+          );
+
+          console.log(`✅ [AUTOMATION] Automatización ejecutada:`, {
+            stage: automationResult.stage,
+            actionsExecuted: automationResult.actionsExecuted.length,
+            needsN8n: automationResult.needsN8n
+          });
+
+          // Agregar información de automatización a la metadata
+          journeyAnalysis.automationExecuted = automationResult;
+
+        } catch (automationError) {
+          console.error('❌ [AUTOMATION] Error ejecutando automatización:', automationError);
+          // Continuar con el flujo normal aunque falle la automatización
+        }
+      }
+
+      // 3. Verificar si necesita derivación
       const assistantRecommendation = this.recommendAssistant(journeyAnalysis.stage, assistantId);
 
-      // 3. Si necesita derivación, generar mensaje de derivación
+      // 4. Si necesita derivación, generar mensaje de derivación
       if (assistantRecommendation.shouldDerive) {
         console.log(`🔄 [DERIVATION] ${assistantId} -> ${assistantRecommendation.recommendedAssistant}`);
 
@@ -475,7 +502,8 @@ ${assistant.name}:`;
             recommendedAssistant: assistantRecommendation.recommendedAssistant,
             journeyStage: journeyAnalysis.stage,
             derivationReason: assistantRecommendation.reason,
-            confidence: journeyAnalysis.confidence
+            confidence: journeyAnalysis.confidence,
+            automationExecuted: journeyAnalysis.automationExecuted || null
           },
           suggestions: [
             `Hablar con ${this.assistantProfiles[assistantRecommendation.recommendedAssistant].name}`,
@@ -495,7 +523,7 @@ ${assistant.name}:`;
         };
       }
 
-      // 4. Si no necesita derivación, generar respuesta normal con contexto de journey
+      // 5. Si no necesita derivación, generar respuesta normal con contexto de journey
       const assistant = this.assistantProfiles[assistantId];
       const enhancedSystemPrompt = `${assistant.systemPrompt}
 
@@ -503,11 +531,23 @@ CONTEXTO ACTUAL DEL USUARIO:
 - Etapa del viaje detectada: ${journeyAnalysis.stage.toUpperCase()}
 - Confidence nivel: ${journeyAnalysis.confidence}
 - Tu especialidad en esta etapa: ${assistant.journeyStages.includes(journeyAnalysis.stage) ? 'ALTA' : 'MEDIA'}
+- Automatización activada: ${journeyAnalysis.automationExecuted ? 'SÍ' : 'NO'}
 
-Responde teniendo en cuenta la etapa específica del viaje del barista.`;
+Responde teniendo en cuenta la etapa específica del viaje del barista y menciona las automatizaciones que se han activado si es relevante.`;
 
       // Continuar con generación normal pero con contexto mejorado
-      return await this.generateResponse(assistantId, message, context);
+      const response = await this.generateResponse(assistantId, message, context);
+
+      // Agregar información de automatización a la respuesta
+      if (journeyAnalysis.automationExecuted) {
+        response.metadata = {
+          ...response.metadata,
+          journeyStage: journeyAnalysis.stage,
+          automationExecuted: journeyAnalysis.automationExecuted
+        };
+      }
+
+      return response;
 
     } catch (error) {
       console.error('❌ Error en generateJourneyAwareResponse:', error);

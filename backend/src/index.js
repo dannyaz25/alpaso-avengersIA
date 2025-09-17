@@ -32,6 +32,7 @@ import chatRoutes from './routes/chatRoutes.js';
 import assistantRoutes from './routes/assistantRoutes.js';
 import analyticsRoutes from './routes/analyticsRoutes.js';
 import integrationRoutes from './routes/integrationRoutes.js';
+import automationRoutes from './routes/automation.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { logger } from './utils/logger.js';
 import { setupSocketIO } from './services/socketService.js';
@@ -98,6 +99,7 @@ app.use('/api/chat', chatRoutes);
 app.use('/api/assistants', assistantRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/integrations', integrationRoutes);
+app.use('/api/automation', automationRoutes);
 
 // Middleware de manejo de errores
 app.use(errorHandler);

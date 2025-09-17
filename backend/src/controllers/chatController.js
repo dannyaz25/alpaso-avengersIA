@@ -56,11 +56,20 @@ export const sendMessage = async (req, res) => {
       timestamp: new Date()
     });
 
-    // Generar respuesta del asistente con contexto del viaje del barista
+    // Generar respuesta del asistente con contexto del viaje del barista y automatización
+    const userProfile = {
+      id: req.user?.id || 'user_' + Date.now(),
+      email: req.user?.email || 'barista@test.com',
+      name: req.user?.name || 'Barista Test',
+      location: req.user?.location || 'Ciudad',
+      interests: ['coffee', 'streaming', 'marketing']
+    };
+
     const aiResponse = await assistantAI.generateJourneyAwareResponse(
       assistantId,
       message,
-      context
+      context,
+      userProfile
     );
 
     // Agregar respuesta del asistente

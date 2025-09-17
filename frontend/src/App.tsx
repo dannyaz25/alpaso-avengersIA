@@ -10,6 +10,8 @@ import Navigation from './components/Navigation';
 import JourneyManager from './components/JourneyManager';
 import { AssistantProvider, useAssistant } from './contexts/AssistantContext';
 import './App.css';
+import AutomationDashboard from './components/AutomationDashboard';
+import LandingPageRouter from './pages/LandingPageRouter';
 
 const GlobalStyle = createGlobalStyle`
   * {
@@ -85,6 +87,11 @@ function App() {
                   <Route path="/stark" element={<StarkAssistant />} />
                   <Route path="/cap" element={<CapAssistant />} />
                   <Route path="/spidey" element={<SpideyAssistant />} />
+                  <Route path="/admin/automation" element={<AutomationDashboard />} />
+                  <Route path="/landing/:etapa/:userId?" element={<LandingPageRouter />} />
+                  <Route path="/landing/descubrimiento" element={<LandingPageRouter />} />
+                  <Route path="/landing/interes" element={<LandingPageRouter />} />
+                  <Route path="/landing/consideracion" element={<LandingPageRouter />} />
                 </Routes>
                 <JourneyManager />
               </Wrapper>
