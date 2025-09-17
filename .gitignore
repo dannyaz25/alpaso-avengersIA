@@ -140,3 +140,6 @@ backend/logs/
 test-results.txt
 simple-test.js
 test-assistants.js
+*.env
+*.env.example
+*.env.local
